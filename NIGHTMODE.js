@@ -13,96 +13,184 @@
 
  const root = host.attachShadow({ mode: "open" });
 
- root.innerHTML = `
- <style>
- *{box-sizing:border-box}
- .panel{width:350px;height:490px;background:#09090d;color:#f5f5ff;
+ const style = document.createElement("style");
+ style.textContent = `
+ * { box-sizing: border-box; }
+ .panel {
+ width:350px;height:490px;background:#09090d;color:#f5f5ff;
  border:1px solid #7652ff;border-radius:18px;overflow:hidden;
  box-shadow:0 12px 50px #000b;font:14px Arial,sans-serif;
- display:flex;flex-direction:column}
- .top{padding:15px;background:#111018;border-bottom:1px solid #292333;
- display:flex;justify-content:space-between;align-items:center;cursor:move}
- .brand{font-size:18px;font-weight:bold;letter-spacing:2px}
- .purple{color:#a88aff}
- button{background:#17151f;color:#eee;border:1px solid #332a48;
- border-radius:9px;padding:9px;cursor:pointer}
- button:hover{border-color:#9b79ff;background:#241b35}
- button:disabled{opacity:.55;cursor:wait}
- .tabs{display:flex;gap:6px;padding:10px}
- .tabs button{flex:1}
- .content{padding:12px;overflow:auto;flex:1}
- .page{display:none}.page.active{display:block}
- textarea,input{width:100%;background:#111018;color:white;
- border:1px solid #393047;border-radius:9px;padding:10px;
- outline:none;margin:8px 0}
- textarea{height:110px;resize:vertical}
- .action{width:100%;margin:5px 0}
- .muted{color:#aaa;font-size:12px;line-height:1.5}
- .answer{white-space:pre-wrap;background:#13111b;padding:10px;
- border-radius:9px;min-height:40px;overflow-wrap:anywhere}
- iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:10px}
- .bottom{padding:9px;text-align:center;color:#777;font-size:11px}
- .video{display:flex;gap:9px;padding:8px;margin:8px 0;
- background:#13111b;border:1px solid #332a48;border-radius:9px;
- text-align:left;width:100%;align-items:center}
- .video img{width:105px;border-radius:6px}
- .video-title{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
- </style>
+ display:flex;flex-direction:column;
+ }
+ .top {
+ padding:15px;background:#111018;border-bottom:1px solid #292333;
+ display:flex;justify-content:space-between;align-items:center;
+ cursor:move;
+ }
+ .brand {font-size:18px;font-weight:bold;letter-spacing:2px}
+ .purple {color:#a88aff}
+ button {
+ background:#17151f;color:#eee;border:1px solid #332a48;
+ border-radius:9px;padding:9px;cursor:pointer;
+ }
+ button:hover {border-color:#9b79ff;background:#241b35}
+ button:disabled {opacity:.55;cursor:wait}
+ .tabs {display:flex;gap:6px;padding:10px}
+ .tabs button {flex:1}
+ .content {padding:12px;overflow:auto;flex:1}
+ .page {display:none}
+ .page.active {display:block}
+ textarea,input {
+ width:100%;background:#111018;color:white;border:1px solid #393047;
+ border-radius:9px;padding:10px;outline:none;margin:8px 0;
+ }
+ textarea {height:110px;resize:vertical}
+ .action {width:100%;margin:5px 0}
+ .muted {color:#aaa;font-size:12px;line-height:1.5}
+ .answer {
+ white-space:pre-wrap;background:#13111b;padding:10px;border-radius:9px;
+ min-height:40px;overflow-wrap:anywhere;
+ }
+ iframe {width:100%;aspect-ratio:16/9;border:0;border-radius:10px}
+ .bottom {padding:9px;text-align:center;color:#777;font-size:11px}
+ .video {
+ display:flex;gap:9px;padding:8px;margin:8px 0;background:#13111b;
+ border:1px solid #332a48;border-radius:9px;text-align:left;
+ width:100%;align-items:center;
+ }
+ .video img {width:105px;border-radius:6px}
+ .video-title {font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+ `;
+ root.appendChild(style);
 
- <div class="panel">
- <div class="top" id="drag">
- <div class="brand">NIGHT<span class="purple">MODE</span></div>
- <div>
- <button id="min">—</button>
- <button id="close">×</button>
- </div>
- </div>
+ function el(tag, options = {}, children = []) {
+ const node = document.createElement(tag);
 
- <div id="body">
- <div class="tabs">
- <button data-tab="home">Home</button>
- <button data-tab="ai">AI</button>
- <button data-tab="music">Music</button>
- <button data-tab="games">Games</button>
- </div>
+ if (options.id) node.id = options.id;
+ if (options.className) node.className = options.className;
+ if (options.text !== undefined) node.textContent = options.text;
+ if (options.placeholder) node.placeholder = options.placeholder;
+ if (options.type) node.type = options.type;
+ if (options.tab) node.dataset.tab = options.tab;
 
- <div class="content">
- <section class="page active" id="home">
- <h2>Welcome back.</h2>
- <p class="muted">Your space. Your music. Your tools.</p>
- <p>Choose a section above to get started.</p>
- <p class="muted" id="status">NIGHTMODE is ready.</p>
- <button class="action" id="connect">Connect NIGHTMODE</button>
- </section>
+ for (const child of children) {
+ node.appendChild(child);
+ }
 
- <section class="page" id="ai">
- <h3>AI Assistant <span class="purple">✦</span></h3>
- <textarea id="question" placeholder="Ask something..."></textarea>
- <button class="action" id="ask">Ask AI</button>
- <div class="answer" id="answer">Your answer will appear here.</div>
- <p class="muted">Powered by your NIGHTMODE backend.</p>
- </section>
+ return node;
+ }
 
- <section class="page" id="music">
- <h3>Music Search</h3>
- <input id="song" placeholder="Search any song or artist...">
- <button class="action" id="search">Search YouTube</button>
- <div id="results"></div>
- <div id="player"></div>
- <input id="videoId" placeholder="Or enter a YouTube video ID">
- <button class="action" id="play">Play in mini-player</button>
- </section>
+ function button(id, text, className = "") {
+ return el("button", { id, text, className });
+ }
 
- <section class="page" id="games">
- <h3>Games</h3>
- <p class="muted">Find browser games without leaving your setup.</p>
- <button class="action" id="gameSearch">Find browser games</button>
- </section>
- </div>
+ function field(tag, id, placeholder, className = "") {
+ return el(tag, { id, placeholder, className });
+ }
 
- <div class="bottom">NIGHTMODE • FLOATING WORKSPACE</div>
- </div>
- </div>`;
+ function actionButton(id, text) {
+ return button(id, text, "action");
+ }
+
+ const panel = el("div", { className: "panel" });
+ const top = el("div", { id: "drag", className: "top" });
+
+ const brand = el("div", { className: "brand" });
+ brand.append(
+ document.createTextNode("NIGHT"),
+ el("span", { className: "purple", text: "MODE" })
+ );
+
+ const topButtons = el("div");
+ topButtons.append(button("min", "—"), button("close", "×"));
+ top.append(brand, topButtons);
+
+ const body = el("div", { id: "body" });
+ const tabs = el("div", { className: "tabs" });
+
+ for (const [id, text] of [
+ ["home", "Home"],
+ ["ai", "AI"],
+ ["music", "Music"],
+ ["games", "Games"]
+ ]) {
+ tabs.appendChild(button("", text, "").setAttribute
+ ? (() => {
+ const b = button("", text);
+ b.dataset.tab = id;
+ return b;
+ })()
+ : document.createElement("button"));
+ }
+
+ // Rebuild the tab row with normal DOM elements.
+ tabs.replaceChildren();
+ for (const [id, text] of [
+ ["home", "Home"], ["ai", "AI"], ["music", "Music"], ["games", "Games"]
+ ]) {
+ const b = button("", text);
+ b.dataset.tab = id;
+ tabs.appendChild(b);
+ }
+
+ const content = el("div", { className: "content" });
+
+ const home = el("section", { id: "home", className: "page active" });
+ home.append(
+ el("h2", { text: "Welcome back." }),
+ el("p", { className: "muted", text: "Your space. Your music. Your tools." }),
+ el("p", { text: "Choose a section above to get started." }),
+ el("p", { id: "status", className: "muted", text: "NIGHTMODE is ready." }),
+ actionButton("connect", "Connect NIGHTMODE")
+ );
+
+ const ai = el("section", { id: "ai", className: "page" });
+ const aiHeading = el("h3");
+ aiHeading.append(
+ document.createTextNode("AI Assistant "),
+ el("span", { className: "purple", text: "✦" })
+ );
+ ai.append(
+ aiHeading,
+ field("textarea", "question", "Ask something..."),
+ actionButton("ask", "Ask AI"),
+ el("div", {
+ id: "answer",
+ className: "answer",
+ text: "Your answer will appear here."
+ }),
+ el("p", { className: "muted", text: "Powered by your NIGHTMODE backend." })
+ );
+
+ const music = el("section", { id: "music", className: "page" });
+ music.append(
+ el("h3", { text: "Music Search" }),
+ field("input", "song", "Search any song or artist..."),
+ actionButton("search", "Search YouTube"),
+ el("div", { id: "results" }),
+ el("div", { id: "player" }),
+ field("input", "videoId", "Or enter a YouTube video ID"),
+ actionButton("play", "Play in mini-player")
+ );
+
+ const games = el("section", { id: "games", className: "page" });
+ games.append(
+ el("h3", { text: "Games" }),
+ el("p", {
+ className: "muted",
+ text: "Find browser games without leaving your setup."
+ }),
+ actionButton("gameSearch", "Find browser games")
+ );
+
+ content.append(home, ai, music, games);
+ body.append(tabs, content);
+ panel.append(
+ top,
+ body,
+ el("div", { className: "bottom", text: "NIGHTMODE • FLOATING WORKSPACE" })
+ );
+ root.appendChild(panel);
 
  const $ = id => root.getElementById(id);
 
@@ -116,12 +204,14 @@
 
  loginPromise = (async () => {
  const code = window.prompt("Enter your NIGHTMODE access code:");
+
  if (code === null || !code.trim()) {
  say("Connection cancelled.");
  return false;
  }
 
  say("Connecting to NIGHTMODE...");
+
  try {
  const response = await fetch(API + "/api/login", {
  method: "POST",
@@ -150,9 +240,11 @@
  }
 
  async function apiFetch(path, options = {}) {
- if (!(await connect())) throw new Error("Connect to NIGHTMODE first.");
+ if (!(await connect())) {
+ throw new Error("Connect to NIGHTMODE first.");
+ }
 
- let response = await fetch(API + path, {
+ const send = () => fetch(API + path, {
  ...options,
  headers: {
  ...(options.headers || {}),
@@ -160,39 +252,33 @@
  }
  });
 
- // A token may expire. Ask for the access code again once.
+ let response = await send();
+
  if (response.status === 401) {
  authToken = null;
  if (!(await connect())) throw new Error("Please reconnect.");
- response = await fetch(API + path, {
- ...options,
- headers: {
- ...(options.headers || {}),
- Authorization: "Bearer " + authToken
- }
- });
+ response = await send();
  }
 
  const data = await response.json().catch(() => ({}));
+
  if (!response.ok) {
  throw new Error(data.error || "The backend request failed.");
  }
+
  return data;
  }
 
- root.querySelectorAll("[data-tab]").forEach(button => {
- button.addEventListener("click", () => {
- root.querySelectorAll(".page").forEach(page =>
- page.classList.remove("active")
- );
- $(button.dataset.tab).classList.add("active");
+ root.querySelectorAll("[data-tab]").forEach(b => {
+ b.addEventListener("click", () => {
+ root.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+ $(b.dataset.tab).classList.add("active");
  });
  });
 
  $("close").onclick = () => host.remove();
 
  $("min").onclick = () => {
- const body = $("body");
  body.style.display = body.style.display === "none" ? "" : "none";
  };
 
@@ -206,8 +292,9 @@
  };
 
  $("ask").onclick = async () => {
- const question = $("question").value.trim();
- if (!question) {
+ const prompt = $("question").value.trim();
+
+ if (!prompt) {
  $("answer").textContent = "Type a question first.";
  return;
  }
@@ -219,8 +306,9 @@
  const data = await apiFetch("/api/ask", {
  method: "POST",
  headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ prompt: question })
+ body: JSON.stringify({ prompt })
  });
+
  $("answer").textContent = data.answer || "No answer was returned.";
  } catch (error) {
  $("answer").textContent = error.message;
@@ -231,6 +319,7 @@
 
  $("search").onclick = async () => {
  const query = $("song").value.trim();
+
  if (!query) {
  $("results").textContent = "Enter a song or artist first.";
  return;
@@ -240,9 +329,7 @@
  $("results").textContent = "Searching YouTube...";
 
  try {
- const data = await apiFetch(
- "/api/search?q=" + encodeURIComponent(query)
- );
+ const data = await apiFetch("/api/search?q=" + encodeURIComponent(query));
  const videos = data.videos || [];
  $("results").replaceChildren();
 
@@ -252,43 +339,36 @@
  }
 
  videos.forEach(video => {
- const button = document.createElement("button");
- button.className = "video";
+ const b = button("", "");
+ b.className = "video";
 
  if (video.thumbnail) {
- const img = document.createElement("img");
+ const img = el("img");
  img.src = video.thumbnail;
  img.alt = "";
- button.appendChild(img);
+ b.appendChild(img);
  }
 
- const details = document.createElement("span");
- details.className = "video-title";
+ const details = el("span", { className: "video-title" });
+ details.append(
+ el("strong", { text: video.title || "Untitled video" }),
+ el("div", { className: "muted", text: video.channel || "" })
+ );
+ b.appendChild(details);
 
- const title = document.createElement("strong");
- title.textContent = video.title || "Untitled video";
-
- const channel = document.createElement("div");
- channel.className = "muted";
- channel.textContent = video.channel || "";
-
- details.append(title, channel);
- button.appendChild(details);
-
- button.onclick = () => {
+ b.onclick = () => {
  if (!/^[a-zA-Z0-9_-]{11}$/.test(video.videoId || "")) return;
  $("player").replaceChildren();
- const iframe = document.createElement("iframe");
+ const iframe = el("iframe");
  iframe.allow = "autoplay; encrypted-media; picture-in-picture";
  iframe.allowFullscreen = true;
- iframe.src =
- "https://www.youtube-nocookie.com/embed/" +
+ iframe.src = "https://www.youtube-nocookie.com/embed/" +
  video.videoId + "?autoplay=1";
  $("player").appendChild(iframe);
  $("player").scrollIntoView({ block: "nearest" });
  };
 
- $("results").appendChild(button);
+ $("results").appendChild(b);
  });
  } catch (error) {
  $("results").textContent = error.message;
@@ -301,25 +381,21 @@
  const id = $("videoId").value.trim();
 
  if (!/^[a-zA-Z0-9_-]{11}$/.test(id)) {
- $("player").textContent =
- "Enter a valid 11-character YouTube video ID.";
+ $("player").textContent = "Enter a valid 11-character YouTube video ID.";
  return;
  }
 
  $("player").replaceChildren();
- const iframe = document.createElement("iframe");
+ const iframe = el("iframe");
  iframe.allow = "autoplay; encrypted-media; picture-in-picture";
  iframe.allowFullscreen = true;
- iframe.src =
- "https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1";
+ iframe.src = "https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1";
  $("player").appendChild(iframe);
  };
 
- $("gameSearch").onclick = () => window.open(
- "https://www.google.com/search?q=free+browser+games",
- "_blank",
- "noopener"
- );
+ $("gameSearch").onclick = () => {
+ window.open("https://www.google.com/search?q=free+browser+games", "_blank", "noopener");
+ };
 
  let startX, startY, startLeft, startTop;
 
@@ -336,10 +412,8 @@
  $("drag").setPointerCapture(event.pointerId);
 
  $("drag").onpointermove = moveEvent => {
- host.style.left =
- Math.max(0, startLeft + moveEvent.clientX - startX) + "px";
- host.style.top =
- Math.max(0, startTop + moveEvent.clientY - startY) + "px";
+ host.style.left = Math.max(0, startLeft + moveEvent.clientX - startX) + "px";
+ host.style.top = Math.max(0, startTop + moveEvent.clientY - startY) + "px";
  };
 
  $("drag").onpointerup = () => {
